@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Our Little Corner</title>
+<style>
+  :root {
+    --bg: #fdf6f3;
+    --card: #ffffff;
+    --ink: #3a2e2e;
+    --muted: #9a8a88;
+    --her: #ffe3e8;
+    --him: #dfeaff;
+    --accent: #e0607e;
+    --line: #f0e2de;
+    --shadow: 0 2px 10px rgba(120, 70, 70, .08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1717;
+      --card: #272020;
+      --ink: #f3e9e7;
+      --muted: #a39492;
+      --her: #5a2a38;
+      --him: #26394f;
+      --accent: #ff8aa5;
+      --line: #3a2f2f;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: ui-rounded, "Nunito", "Segoe UI", system-ui, sans-serif;
+    display: flex; flex-direction: column;
+  }
+  button { font: inherit; cursor: pointer; }
+
+  /* ---------- Login ---------- */
+  #login {
+    flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .login-card {
+    background: var(--card); border-radius: 20px; padding: 28px 24px;
+    width: 100%; max-width: 360px; box-shadow: var(--shadow); text-align: center;
+  }
+  .login-card h1 { margin: 0 0 4px; font-size: 24px; }
+  .login-card p { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+  .who { display: flex; gap: 10px; margin-bottom: 14px; }
+  .who button {
+    flex: 1; padding: 14px 8px; border-radius: 14px; border: 2px solid var(--line);
+    background: transparent; color: var(--ink); font-weight: 600;
+  }
+  .who button.sel { border-color: var(--accent); background: var(--her); }
+  .who button[data-who="him"].sel { background: var(--him); }
+  .login-card input {
+    width: 100%; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line);
+    background: transparent; color: var(--ink); font: inherit; margin-bottom: 14px;
+  }
+  .primary {
+    width: 100%; padding: 12px; border: 0; border-radius: 12px;
+    background: var(--accent); color: #fff; font-weight: 700;
+  }
+  .err { color: #d33; font-size: 13px; min-height: 18px; margin-top: 10px; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 12px; }
+
+  /* ---------- Chat ---------- */
+  #chat { flex: 1; display: none; flex-direction: column; min-height: 0; }
+  header {
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+    background: var(--card); border-bottom: 1px solid var(--line);
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+  header h2 { margin: 0; font-size: 17px; flex: 1; }
+  header .sub { font-size: 12px; color: var(--muted); font-weight: 400; display: block; }
+  .icon-btn {
+    background: transparent; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 10px; padding: 6px 10px; font-size: 13px;
+  }
+  #messages {
+    flex: 1; overflow-y: auto; padding: 16px 14px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .day {
+    align-self: center; font-size: 12px; color: var(--muted);
+    background: var(--card); padding: 3px 12px; border-radius: 99px; margin: 8px 0 2px;
+  }
+  .row { display: flex; flex-direction: column; max-width: 82%; }
+  .row.mine { align-self: flex-end; align-items: flex-end; }
+  .row.theirs { align-self: flex-start; align-items: flex-start; }
+  .bubble {
+    padding: 10px 14px; border-radius: 18px; line-height: 1.4;
+    white-space: pre-wrap; word-wrap: break-word; box-shadow: var(--shadow);
+  }
+  .row.her .bubble { background: var(--her); border-bottom-left-radius: 6px; }
+  .row.him .bubble { background: var(--him); border-bottom-right-radius: 6px; }
+  .row.mine.her .bubble { border-bottom-left-radius: 18px; border-bottom-right-radius: 6px; }
+  .row.mine.him .bubble { border-bottom-right-radius: 6px; }
+  .row.theirs.him .bubble { border-bottom-right-radius: 18px; border-bottom-left-radius: 6px; }
+  .row.important .bubble { border: 2px solid var(--accent); }
+  .tag { font-size: 12px; margin-bottom: 3px; color: var(--accent); font-weight: 700; }
+  .meta { font-size: 11px; color: var(--muted); margin-top: 3px; padding: 0 4px; }
+  .empty { margin: auto; text-align: center; color: var(--muted); padding: 30px; }
+
+  .composer {
+    background: var(--card); border-top: 1px solid var(--line); padding: 10px 12px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+  .tools { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+  .chip {
+    border: 1px solid var(--line); background: transparent; color: var(--ink);
+    padding: 4px 10px; border-radius: 99px; font-size: 13px;
+  }
+  .chip.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .chip.star.sel { background: #f5b301; border-color: #f5b301; color: #222; }
+  .send-row { display: flex; gap: 8px; align-items: flex-end; }
+  textarea {
+    flex: 1; resize: none; max-height: 140px; padding: 10px 14px; border-radius: 18px;
+    border: 2px solid var(--line); background: transparent; color: var(--ink); font: inherit;
+  }
+  textarea:focus, .login-card input:focus { outline: none; border-color: var(--accent); }
+  #send {
+    border: 0; background: var(--accent); color: #fff; border-radius: 50%;
+    width: 44px; height: 44px; font-size: 18px;
+  }
+  #send:disabled { opacity: .5; }
+  #banner {
+    display: none; background: #fff3cd; color: #6b5300; font-size: 12px;
+    padding: 6px 12px; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ CONFIG: edit these ============ -->
+<script>
+  const CONFIG = {
+    TITLE: "Our Little Corner",
+    HER_NAME: "Her",          // <- put her name here
+    HIS_NAME: "Him",
+    API_URL: "https://chkjcprp63p3egjnf3dbv2oe340aifoj.lambda-url.ap-south-1.on.aws/",              // <- paste your Lambda Function URL here (see README). Leave empty to test locally.
+  };
+</script>
+
+<!-- ============ LOGIN ============ -->
+<section id="login">
+  <div class="login-card">
+    <h1 id="loginTitle">Our Little Corner</h1>
+    <p>Just for the two of us</p>
+    <div class="who">
+      <button data-who="her" id="whoHer">Her</button>
+      <button data-who="him" id="whoHim">Him</button>
+    </div>
+    <input id="passcode" type="password" placeholder="Our secret passcode" autocomplete="current-password">
+    <button class="primary" id="enter">Come in</button>
+    <div class="err" id="loginErr"></div>
+    <div class="note" id="loginNote"></div>
+  </div>
+</section>
+
+<!-- ============ CHAT ============ -->
+<section id="chat">
+  <div id="banner">Local test mode: messages are saved only on this device. Add your API_URL to share them.</div>
+  <header>
+    <h2><span id="chatTitle"></span><span class="sub" id="chatSub"></span></h2>
+    <button class="icon-btn" id="refresh" title="Check for new messages">↻</button>
+    <button class="icon-btn" id="logout">Switch</button>
+  </header>
+  <div id="messages"></div>
+  <div class="composer">
+    <div class="tools" id="tools"></div>
+    <div class="send-row">
+      <textarea id="text" rows="1" placeholder="Write something..."></textarea>
+      <button id="send" title="Send">➤</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  const MOODS = [
+    ["💗", "Loved"], ["😊", "Happy"], ["🥹", "Grateful"], ["😔", "Sad"],
+    ["😰", "Anxious"], ["😤", "Frustrated"], ["🌀", "Overwhelmed"], ["🤍", "Miss you"]
+  ];
+  const $ = (id) => document.getElementById(id);
+  const LS = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+  const localMode = !CONFIG.API_URL;
+  const nameOf = (w) => (w === "her" ? CONFIG.HER_NAME : CONFIG.HIS_NAME);
+
+  let me = LS.get("who");
+  let key = LS.get("key") || "";
+  let selMood = "";
+  let important = false;
+  let messages = [];
+  let pollTimer = null;
+
+  document.title = CONFIG.TITLE;
+  $("loginTitle").textContent = CONFIG.TITLE;
+  $("whoHer").textContent = CONFIG.HER_NAME;
+  $("whoHim").textContent = CONFIG.HIS_NAME;
+  if (localMode) {
+    $("passcode").style.display = "none";
+    $("loginNote").textContent = "Test mode: messages stay on this device until you connect the backend.";
+  }
+
+  // ---------- Login ----------
+  let pick = null;
+  document.querySelectorAll(".who button").forEach((b) => {
+    b.onclick = () => {
+      pick = b.dataset.who;
+      document.querySelectorAll(".who button").forEach((x) => x.classList.toggle("sel", x === b));
+    };
+  });
+
+  $("enter").onclick = async () => {
+    $("loginErr").textContent = "";
+    if (!pick) { $("loginErr").textContent = "Tell me who you are first 🙂"; return; }
+    if (!localMode) {
+      key = $("passcode").value.trim();
+      if (!key) { $("loginErr").textContent = "Enter the passcode."; return; }
+      try { await api("GET"); }
+      catch (e) { $("loginErr").textContent = e.message === "401" ? "Wrong passcode." : "Couldn't connect. Try again."; return; }
+      LS.set("key", key);
+    }
+    me = pick; LS.set("who", me);
+    showChat();
+  };
+  $("passcode").addEventListener("keydown", (e) => { if (e.key === "Enter") $("enter").click(); });
+
+  $("logout").onclick = () => {
+    LS.del("who"); LS.del("key"); me = null; key = "";
+    clearInterval(pollTimer);
+    $("chat").style.display = "none"; $("login").style.display = "flex";
+  };
+
+  // ---------- Storage ----------
+  async function api(method, body) {
+    const res = await fetch(CONFIG.API_URL, {
+      method,
+      headers: { "Content-Type": "application/json", "x-chat-key": key },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) throw new Error(String(res.status));
+    return res.json();
+  }
+  async function load() {
+    if (localMode) {
+      try { return JSON.parse(LS.get("msgs") || "[]"); } catch (e) { return []; }
+    }
+    const data = await api("GET");
+    return data.messages || [];
+  }
+  async function save(msg) {
+    if (localMode) {
+      const all = await load();
+      msg.id = String(Date.now());
+      msg.ts = Date.now();
+      all.push(msg);
+      LS.set("msgs", JSON.stringify(all));
+      return;
+    }
+    await api("POST", msg);
+  }
+
+  // ---------- UI ----------
+  function buildTools() {
+    const t = $("tools"); t.innerHTML = "";
+    MOODS.forEach(([emoji, label]) => {
+      const b = document.createElement("button");
+      b.className = "chip"; b.textContent = emoji + " " + label; b.type = "button";
+      b.onclick = () => {
+        selMood = selMood === label ? "" : label;
+        [...t.querySelectorAll(".chip:not(.star)")].forEach((c) => c.classList.remove("sel"));
+        if (selMood) b.classList.add("sel");
+      };
+      t.appendChild(b);
+    });
+    const s = document.createElement("button");
+    s.className = "chip star"; s.type = "button"; s.textContent = "⭐ Important";
+    s.onclick = () => { important = !important; s.classList.toggle("sel", important); };
+    t.appendChild(s);
+  }
+
+  function dayLabel(ts) {
+    const d = new Date(ts), n = new Date();
+    const same = (a, b) => a.toDateString() === b.toDateString();
+    const y = new Date(n); y.setDate(n.getDate() - 1);
+    if (same(d, n)) return "Today";
+    if (same(d, y)) return "Yesterday";
+    return d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  }
+  function timeLabel(ts) {
+    return new Date(ts).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+
+  function render(stickBottom) {
+    const box = $("messages");
+    const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+    box.innerHTML = "";
+    if (!messages.length) {
+      const e = document.createElement("div");
+      e.className = "empty";
+      e.textContent = "Nothing here yet. Say what's on your heart 💌";
+      box.appendChild(e);
+      return;
+    }
+    let lastDay = "";
+    messages.forEach((m) => {
+      const dl = dayLabel(m.ts);
+      if (dl !== lastDay) {
+        const d = document.createElement("div"); d.className = "day"; d.textContent = dl;
+        box.appendChild(d); lastDay = dl;
+      }
+      const row = document.createElement("div");
+      row.className = "row " + m.from + " " + (m.from === me ? "mine" : "theirs") + (m.important ? " important" : "");
+      if (m.mood || m.important) {
+        const tag = document.createElement("div"); tag.className = "tag";
+        const mood = MOODS.find((x) => x[1] === m.mood);
+        tag.textContent = (m.important ? "⭐ " : "") + (mood ? mood[0] + " " + mood[1] : "");
+        row.appendChild(tag);
+      }
+      const bub = document.createElement("div"); bub.className = "bubble"; bub.textContent = m.text;
+      const meta = document.createElement("div"); meta.className = "meta";
+      meta.textContent = (m.from === me ? "" : nameOf(m.from) + " · ") + timeLabel(m.ts);
+      row.appendChild(bub); row.appendChild(meta);
+      box.appendChild(row);
+    });
+    if (stickBottom || nearBottom) box.scrollTop = box.scrollHeight;
+  }
+
+  async function refresh(forceScroll) {
+    try {
+      const data = await load();
+      const changed = JSON.stringify(data.map((m) => m.id)) !== JSON.stringify(messages.map((m) => m.id));
+      messages = data;
+      if (changed || forceScroll) render(forceScroll);
+    } catch (e) { /* ignore temporary network errors */ }
+  }
+
+  function showChat() {
+    $("login").style.display = "none";
+    $("chat").style.display = "flex";
+    $("banner").style.display = localMode ? "block" : "none";
+    $("chatTitle").textContent = CONFIG.TITLE;
+    $("chatSub").textContent = "You are " + nameOf(me);
+    buildTools();
+    refresh(true);
+    clearInterval(pollTimer);
+    pollTimer = setInterval(() => { if (!document.hidden) refresh(false); }, 20000);
+  }
+
+  async function send() {
+    const ta = $("text");
+    const text = ta.value.trim();
+    if (!text) return;
+    $("send").disabled = true;
+    try {
+      await save({ from: me, text, mood: selMood, important });
+      ta.value = ""; ta.style.height = "auto";
+      selMood = ""; important = false; buildTools();
+      await refresh(true);
+    } catch (e) {
+      alert("Couldn't send. Please try again.");
+    }
+    $("send").disabled = false;
+  }
+
+  $("send").onclick = send;
+  $("refresh").onclick = () => refresh(false);
+  $("text").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+  $("text").addEventListener("input", (e) => {
+    e.target.style.height = "auto";
+    e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
+  });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && me) refresh(false); });
+
+  // ---------- Boot ----------
+  if (me && (localMode || key)) showChat();
+})();
+</script>
+</body>
+</html>
